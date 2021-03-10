@@ -6,29 +6,49 @@ from math import inf
 input_file_name = 'lab1\\input.txt'
 
 output_file_name = 'lab1\\output.txt'
-# коэффициент оптимизма для критерия Гурвица (0 - наиболее оптимистичный сценарий, 1 - наиболее пессимистичный)
+# коэффициент оптимизма для критерия Гурвица
+# (0 - наиболее оптимистичный сценарий, 1 - наиболее пессимистичный)
 optimism_factor = 0.5
-zero = 0
+nul = 0
 one = 1
 
 
 def reading():
     """ Чтение данных из входного файла """
     with open(input_file_name, 'r') as r:
-        probability = r.readline().split()
-        probability = [float(i) for i in probability]
+        _probability = r.readline().split()
+        _probability = [float(i) for i in _probability]
         matrix = []
         for line in r:
             _line = line.split()
             matrix.append([int(element) for element in _line])
-    return probability, matrix
+    return _probability, matrix
 
 
-def print_input_data(probability, matrix):
+def count_risk(matrix):
+    """ Посчитать матрицу рисков """
+    # beta[j] = max(i) matrix[i][j]
+    beta = [nul for _ in range(len(matrix[0]))]
+    for i in range(len(matrix)):
+        for j in range(len(matrix[i])):
+            if matrix[i][j] > beta[j]:
+                beta[j] = matrix[i][j]
+
+    # Risk_MATR - матрица рисков
+    Risk_MATR = []
+    for i in range(len(matrix)):
+        line = []
+        for j in range(len(matrix[i])):
+            line.append(beta[j] - matrix[i][j])
+        Risk_MATR.append(line)
+    return Risk_MATR
+
+
+def print_input_data(_probability, matrix):
     """ Печать входных данных в файл """
-    with open(output_file_name, 'w') as w:
-        None
-    print_message('Вероятности: ' + str(probability))
+    #with open(output_file_name, 'w') as w:
+     #   None
+    print_message('Вероятности: ' + str(_probability))
     print_message('Платежная матрица')
     print_matrix(matrix)
 
@@ -54,16 +74,17 @@ def print_message(message):
         w.write(message + '\n')
 
 
-def find_solution(matrix, probability):
+def find_solution(matrix, _probability):
     """ Определение решения в зависимости от указанных критериев """
     risk = count_risk(matrix)
     print_message('Матрица рисков')
     print_matrix(risk)
 
-    priority = [zero for _ in range(len(matrix))]
+    priority = [nul for _ in range(len(matrix))]
 
-    strategy = with_probability(risk, probability)
-    print_message('\nКритерий, основанный на известных вероятностях условиях (меньше - лучше)')
+    strategy = with_probability(risk, _probability)
+    print_message('\nКритерий, основанный на известных '
+                  'вероятностях условиях (меньше - лучше)')
     print_list_in_column(strategy)
     recount_priority(priority, define_min(strategy))
 
@@ -78,12 +99,14 @@ def find_solution(matrix, probability):
     recount_priority(priority, define_min(strategy))
 
     strategy = Hurwitz_matrix(matrix)
-    print_message('\nКритерий Гурвица, основанный на выигрыше (больше - лучше)')
+    print_message('\nКритерий Гурвица, '
+                  'основанный на выигрыше (больше - лучше)')
     print_list_in_column(strategy)
     recount_priority(priority, define_max(strategy))
 
     strategy = Hurwitz_risk(risk)
-    print_message('\nКритерий Гурвица, основанный на риске (меньше - лучше)')
+    print_message('\nКритерий Гурвица, '
+                  'основанный на риске (меньше - лучше)')
     print_list_in_column(strategy)
     recount_priority(priority, define_min(strategy))
 
@@ -96,33 +119,14 @@ def recount_priority(priority, _pr):
         priority[i] += one
 
 
-def count_risk(matrix):
-    """ Посчитать матрицу рисков """
-    # beta[j] = max(i) matrix[i][j]
-    beta = [zero for _ in range(len(matrix[0]))]
-    for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            if matrix[i][j] > beta[j]:
-                beta[j] = matrix[i][j]
-
-    # r - матрица рисков
-    r = []
-    for i in range(len(matrix)):
-        line = []
-        for j in range(len(matrix[i])):
-            line.append(beta[j] - matrix[i][j])
-        r.append(line)
-    return r
-
-
-def with_probability(risk, probability):
+def with_probability(risk, _probability):
     """ Критерий, основанный на известных вероятностях условиях """
     r_medium = []
     for i in range(len(risk)):
-        sum = zero
+        _summa = nul
         for j in range(len(risk[i])):
-            sum += probability[j] * risk[i][j]
-        r_medium.append(round(sum, 1))
+            _summa += _probability[j] * risk[i][j]
+        r_medium.append(round(_summa, 1))
     return r_medium
 
 
@@ -201,4 +205,5 @@ if __name__ == '__main__':
     result = inc(define_max(find_solution(matrix, probability)))
 
     print_message(
-        '\nВ результате анализа всех критериев, делаем вывод, что наиболее оптимальные стратегии это ' + str(result))
+        '\nВ результате анализа всех критериев, делаем вывод, '
+        'что наиболее оптимальные стратегии это ' + str(result))
